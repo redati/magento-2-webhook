@@ -45,7 +45,6 @@ use Mageplaza\Webhook\Model\Config\Source\Status;
 use Mageplaza\Webhook\Model\HistoryFactory;
 use Mageplaza\Webhook\Model\HookFactory;
 use Mageplaza\Webhook\Model\ResourceModel\Hook\Collection;
-use Zend_Http_Response;
 
 /**
  * Class Data
@@ -332,7 +331,7 @@ class Data extends CoreHelper
             $resultCurl         = $curl->read();
             $result['response'] = $resultCurl;
             if (!empty($resultCurl)) {
-                $result['status'] = Zend_Http_Response::extractCode($resultCurl);
+                $result['status'] = $this->extractCode($resultCurl);
                 if (isset($result['status']) && $this->isSuccess($result['status'])) {
                     $result['success'] = true;
                 } else {
@@ -348,6 +347,20 @@ class Data extends CoreHelper
 
         return $result;
     }
+
+
+       // funç~çao de Zend_Http_Response::extractCode($resultCurl)
+       public function extractCode($response_str)
+       {
+           preg_match("|^HTTP/[\d\.x]+ (\d+)|", $response_str, $m);
+
+           if (isset($m[1])) {
+               return (int) $m[1];
+           } else {
+               return false;
+           }
+       }
+
 
     /**
      * @param $url
@@ -381,7 +394,7 @@ class Data extends CoreHelper
         $method       = $method ?: 'GET';
         $A1           = hash('md5', "{$username}:{$realm}:{$password}");
         $A2           = hash('md5', "{$method}:{$uri}");
-        $response     = hash('md5', "{$A1}:{$nonce}:{$nonceCount}:{$clientNonce}:{$qop}:${A2}");
+        $response     = hash('md5', "{$A1}:{$nonce}:{$nonceCount}:{$clientNonce}:{$qop}:{$A2}");
         $digestHeader = "Digest username=\"{$username}\", realm=\"{$realm}\", nonce=\"{$nonce}\", uri=\"{$uri}\", cnonce=\"{$clientNonce}\", nc={$nonceCount}, qop=\"{$qop}\", response=\"{$response}\", opaque=\"{$opaque}\", algorithm=\"{$algorithm}\"";
 
         return $digestHeader;
